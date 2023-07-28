@@ -42,7 +42,7 @@ def create_dbs_in_parallel(cdb_name, db_prefix, db_count, start_index, db_userna
         while db_count > 0:
             pdb_name = f'{db_prefix}{start_index}'
             start_index += 1
-            arg = (cdb_name, pdb_name)
+            arg = (cdb_name, pdb_name, db_username, db_password)
             future_to_db[executor.submit(create_db, *arg)] = pdb_name
             db_count -= 1
 
