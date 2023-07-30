@@ -20,7 +20,7 @@ parser.add_argument('--random_high', default=1.0, help='works if random is set t
 def create_table_and_fill(oewizard_path, hostname, pdb_name, pdb_password, pdb_username, scale, is_random, random_low, random_high):
     if is_random:
         scale = float("{:.2f}".format(random.uniform(random_low, random_high)))
-    args = f'-c soe.xml -cs //{hostname}/{pdb_name} -dbap {pdb_password} -dba {pdb_username} -u soe -p soe -async_off -scale {scale} -hashpart -create -cl -v -debug -tc 10'
+    args = f'-c soe.xml -cs //{hostname}/{pdb_name} -dbap {pdb_password} -dba {pdb_username} -u soe -p soe -async_off -scale {scale} -hashpart -create -cl -v -debug -tc 15'
     print(f'running swingbench with - {oewizard_path} {args}')
     cmd = f'{oewizard_path} {args}'
     cmd_args = cmd.split()
