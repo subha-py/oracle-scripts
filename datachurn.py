@@ -8,10 +8,10 @@ parser.add_argument('--prefix', default='pdb', help='prefix of pdb you want to c
 parser.add_argument('--db_count', default=5, help='number of dbs you want to churn (default: 5)', type=int)
 parser.add_argument('--start', default=1, help='starting index (default: 1)', type=int)
 parser.add_argument('--charbench_path', default='/home/oracle/Downloads/swingbench/bin/charbench',
-                    help='path to charbench of swingbench', type=str)
+                    help='path to charbench of swingbench (default: /home/oracle/Downloads/swingbench/bin/charbench)', type=str)
 parser.add_argument('--hostname', default='localhost', help='hostname of oracle host (default: localhost)', type=str)
-parser.add_argument('--users', default=0.1, help='how many users you want to churn', type=float)
-parser.add_argument('--runtime', default=False, help='for how long you want to run churn', type=str)
+parser.add_argument('--users', default=25, help='how many users you want to churn (default: 25)', type=float)
+parser.add_argument('--runtime', default='0:5.5', help='for how long you want to run churn (default 5 mins 5 secs', type=str)
 
 def create_table_and_fill(oewizard_path, hostname, pdb_name, pdb_password, pdb_username, scale, is_random, random_low, random_high):
     if is_random:
