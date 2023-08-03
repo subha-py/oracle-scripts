@@ -47,7 +47,7 @@ def churn_db_data_in_parallel(db_prefix, db_count, start_index, charbench_path, 
             pdb_name = f'{db_prefix}{start_index}'
             start_index += 1
             arg = (charbench_path, hostname, pdb_name, users, runtime)
-            future_to_db[executor.submit(create_table_and_fill, *arg)] = pdb_name
+            future_to_db[executor.submit(churn_data, *arg)] = pdb_name
             db_count -= 1
 
     result = []
