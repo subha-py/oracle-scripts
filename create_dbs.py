@@ -10,19 +10,31 @@ parser.add_argument('--db_username', default='sys', help='username of db (defaul
 parser.add_argument('--db_password', default='cohesity', help='password of cdb (default: cohesity)', type=str)
 parser.add_argument('--db_count', default=5, help='number of dbs you want to create (default: 5)', type=int)
 parser.add_argument('--start', default=1, help='starting index (default: 1)', type=int)
+parser.add_argument('--open_only', default=False, help='open dbs only', type=bool)
 
 
 
-def create_db(cdb_name,pdb_name, db_username,db_password ):
-    print('creating - {}'.format(pdb_name))
-    cmd = 'sqlplus -S {db_username}/{db_password}@{cdb_name} as sysdba @create_db.sql {pdb_name}'.format(
-                cdb_name=cdb_name, pdb_name=pdb_name, db_username=db_username, db_password=db_password)
-    cmd_args = cmd.split()
-    exit_code = subprocess.run(cmd_args, stdout=subprocess.DEVNULL)
-    if exit_code.returncode == 0:
-        print('pdb - {} created'.format(pdb_name))
-        return True
-    return False
+def create_db(cdb_name,pdb_name, db_username,db_password, open_only=False):
+    if not open_only:
+        print('creating - {}'.format(pdb_name))
+        cmd = 'sqlplus -S {db_username}/{db_password}@{cdb_name} as sysdba @create_db.sql {pdb_name}'.format(
+                    cdb_name=cdb_name, pdb_name=pdb_name, db_username=db_username, db_password=db_password)
+        cmd_args = cmd.split()
+        exit_code = subprocess.run(cmd_args, stdout=subprocess.DEVNULL)
+        if exit_code.returncode == 0:
+            exit_code = open_pdb(cdb_name,db_username,db_password, pdb_name)
+            if exit_code.returncode == 0:
+                print('pdb - {} created'.format(pdb_name))
+                return True
+        print('pdb - {} failed to create'.format(pdb_name))
+        return False
+    else:
+        exit_code = open_pdb(cdb_name, db_username, db_password, pdb_name)
+        if exit_code.returncode == 0:
+            print('pdb - {} opened'.format(pdb_name))
+            return True
+        print('pdb - {} failed to open'.format(pdb_name))
+        return False
 
 def list_pdbs(cdb_name, db_username,db_password):
     cmd = 'sqlplus -S {db_username}/{db_password}@{cdb_name} as sysdba @list_db.sql'.format(
@@ -33,16 +45,22 @@ def list_pdbs(cdb_name, db_username,db_password):
         return True
     return False
 
+def open_pdb(cdb_name, db_username, db_password, pdb_name):
+    cmd = 'sqlplus -S {db_username}/{db_password}@{cdb_name} as sysdba @open_db.sql {pdb_name}'.format(
+        cdb_name=cdb_name, db_username=db_username, db_password=db_password, pdb_name=pdb_name)
+    cmd_args = cmd.split()
+    exit_code = subprocess.run(cmd_args)
+    return exit_code
 
 
-def create_dbs_in_parallel(cdb_name, db_prefix, db_count, start_index, db_username,db_password):
+def create_dbs_in_parallel(cdb_name, db_prefix, db_count, start_index, db_username,db_password, open_only):
     list_pdbs(cdb_name, db_username,db_password)
     future_to_db = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=db_count) as executor:
         while db_count > 0:
             pdb_name = f'{db_prefix}{start_index}'
             start_index += 1
-            arg = (cdb_name, pdb_name, db_username, db_password)
+            arg = (cdb_name, pdb_name, db_username, db_password, open_only)
             future_to_db[executor.submit(create_db, *arg)] = pdb_name
             db_count -= 1
 
@@ -62,4 +80,4 @@ def create_dbs_in_parallel(cdb_name, db_prefix, db_count, start_index, db_userna
 if __name__ == '__main__':
     result = parser.parse_args()
     create_dbs_in_parallel(result.cdb, result.prefix, result.db_count, result.start,
-                           result.db_username, result.db_password)
+                           result.db_username, result.db_password, result.open_only)
